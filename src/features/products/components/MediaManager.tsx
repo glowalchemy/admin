@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { uploadImageQueued } from "@/lib/uploadQueue";
-import { cn } from "@/lib/utils";
+import { cn, isImageUrl } from "@/lib/utils";
 import { ImagePlus, Move, Star, Trash2, Upload } from "lucide-react";
 
 import type { ProductImage } from "../types";
@@ -37,6 +37,10 @@ export function MediaManager({ images, thumbnailId, onChange, className }: Props
   const addUrl = () => {
     const url = urlDraft.trim();
     if (!url) return;
+    if (!isImageUrl(url)) {
+      window.alert("Only image URLs are allowed (jpg, png, jpeg, webp, avif, gif, svg, bmp, tiff, ico) - no other formats.");
+      return;
+    }
     const next: ProductImage = { id: `img-${Date.now()}`, url };
     setImages([...images, next], resolvedThumbId ?? next.id);
     setUrlDraft("");

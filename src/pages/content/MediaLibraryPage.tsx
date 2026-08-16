@@ -13,6 +13,8 @@ import { API_ORIGIN } from "@/lib/apiClient";
 const API_BASE_URL = `${API_ORIGIN}/api`;
 const api = axios.create({ baseURL: String(API_BASE_URL).replace(/\/$/, '') });
 
+type VariantEntry = { slot: number; width?: number; avif?: string; webp?: string };
+
 type MediaItem = {
   id: string;
   key: string;
@@ -22,6 +24,31 @@ type MediaItem = {
   originalName: string;
   createdAt?: string;
   folder?: string;
+  width?: number;
+  height?: number;
+  variants?: Record<string, VariantEntry>;
+};
+
+/** Smallest optimized variant (thumbnail) — never load the original in a grid. */
+const thumbUrl = (item: MediaItem): string => {
+  const v = item.variants;
+  if (v && v[320]) return v[320].avif || v[320].webp || item.url;
+  return item.url;
+};
+
+/** Largest optimized variant for the preview dialog. */
+const previewUrl = (item: MediaItem): string => {
+  const v = item.variants;
+  if (v) {
+    const slots = Object.keys(v)
+      .map(Number)
+      .sort((a, b) => b - a);
+    for (const s of slots) {
+      if (v[s].avif) return v[s].avif;
+      if (v[s].webp) return v[s].webp;
+    }
+  }
+  return item.url;
 };
 
 const MediaLibraryPage = () => {
@@ -178,7 +205,13 @@ const MediaLibraryPage = () => {
                 <Card key={item.id} className="glass group overflow-hidden">
                   <div className="aspect-square relative">
                     {String(item.contentType || '').startsWith('image/') ? (
-                      <img src={item.url} alt={item.originalName || item.key} className="w-full h-full object-cover" />
+                      <img
+                        src={thumbUrl(item)}
+                        alt={item.originalName || item.key}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-muted">
                         <span className="text-2xl">📄</span>
@@ -205,7 +238,7 @@ const MediaLibraryPage = () => {
           {selectedItem && (
             <div className="space-y-4">
               {String(selectedItem.contentType || '').startsWith('image/') ? (
-                <img src={selectedItem.url} alt={selectedItem.originalName || selectedItem.key} className="w-full rounded-lg" />
+                <img src={previewUrl(selectedItem)} alt={selectedItem.originalName || selectedItem.key} className="w-full rounded-lg" />
               ) : (
                 <div className="p-8 bg-muted rounded-lg text-center">
                   <span className="text-4xl">📄</span>

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isImageUrl } from "@/lib/utils";
+
 import type { ProductManagementFormValues } from "./types";
 
 const money = z
@@ -8,6 +10,11 @@ const money = z
   .nonnegative("Must be 0 or greater");
 
 const nonEmpty = (message: string) => z.string().trim().min(1, message);
+
+const imageUrl = (message: string) =>
+  z.string().trim().min(1, message).refine((v) => isImageUrl(v), {
+    message: "Image URL must be an image (jpg, png, jpeg, webp, avif, gif, svg, bmp, tiff, ico) - no other formats",
+  });
 
 export const productManagementSchema = z
   .object({
@@ -50,7 +57,7 @@ export const productManagementSchema = z
         .array(
           z.object({
             id: z.string(),
-            url: nonEmpty("Image URL is required"),
+            url: imageUrl("Image URL is required"),
             alt: z.string().optional(),
           }),
         )
@@ -64,7 +71,7 @@ export const productManagementSchema = z
           colorName: nonEmpty("Color name is required"),
           colorCode: nonEmpty("Color code is required"),
           name: z.string().trim().optional(),
-          images: z.array(z.string().trim().min(1)).default([]),
+          images: z.array(z.string().trim().min(1).refine((v) => isImageUrl(v), { message: "Variant images must be image URLs only" })).default([]),
           price: z.number().optional(),
           stock: z.number().int().optional(),
           sku: z.string().trim().optional(),
@@ -90,7 +97,13 @@ export const productManagementSchema = z
           stockOverride: z.number().int().optional(),
         }),
       ),
-      sizeGuideImageUrl: z.string().trim().optional(),
+      sizeGuideImageUrl: z
+        .string()
+        .trim()
+        .optional()
+        .refine((v) => !v || isImageUrl(v), {
+          message: "Size guide must be an image URL (jpg, png, jpeg, webp, avif, gif, svg, bmp, tiff, ico) - no other formats",
+        }),
     }),
     seo: z.object({
       metaTitle: z.string().trim().max(60, "Recommended: up to 60 chars"),
