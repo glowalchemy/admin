@@ -94,14 +94,15 @@ export function AttributesTab() {
         throw new Error(msg);
       }
 
-      const data: any = await res.json();
+      const data: Record<string, unknown> = await res.json();
       const url = String(data?.url || "").trim();
       if (!url) throw new Error(String(data?.message || "Upload failed"));
 
       setValue("attributes.sizeGuideImageUrl", url, { shouldDirty: true, shouldValidate: true });
       toast({ title: "Uploaded", description: "Size guide image uploaded." });
-    } catch (e: any) {
-      toast({ title: "Upload failed", description: String(e?.message || e), variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: "Upload failed", description: msg, variant: "destructive" });
     } finally {
       setSizeGuideImageUploading(false);
     }
@@ -148,12 +149,13 @@ export function AttributesTab() {
         throw new Error(msg);
       }
 
-      const data: any = await res.json();
+      const data: Record<string, unknown> = await res.json();
       const url = String(data?.url || "").trim();
       if (!url) throw new Error(String(data?.message || "Upload failed"));
       return url;
-    } catch (e: any) {
-      toast({ title: "Upload failed", description: String(e?.message || e), variant: "destructive" });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: "Upload failed", description: msg, variant: "destructive" });
       return "";
     }
   };
@@ -180,7 +182,7 @@ export function AttributesTab() {
 
   useEffect(() => {
     if (derivedColors.length === 0) return;
-    const existing = Array.isArray(getValues("colorVariants")) ? (getValues("colorVariants") as any[]) : [];
+    const existing = Array.isArray(getValues("colorVariants")) ? (getValues("colorVariants") as unknown[]) : [];
     const existingByKey = new Map(existing.map((v) => [String(v?.color || ""), v]));
     const next = derivedColors.map((c) => {
       const colorName = c;
@@ -420,7 +422,7 @@ export function AttributesTab() {
                                     const merged = Array.from(new Set([...(current || []), nameRaw]));
                                     setValue(`attributes.sets.${idx}.values`, merged, { shouldDirty: true, shouldValidate: true });
 
-                                    const existing = Array.isArray(getValues("colorVariants")) ? (getValues("colorVariants") as any[]) : [];
+                                    const existing = Array.isArray(getValues("colorVariants")) ? (getValues("colorVariants") as unknown[]) : [];
                                     const foundIndex = existing.findIndex(
                                       (v) => String(v?.color || "") === key || String(v?.colorName || "").trim() === nameRaw
                                     );
@@ -597,7 +599,7 @@ export function AttributesTab() {
               </div>
 
               <div className="space-y-3">
-                {(Array.isArray(colorVariants) ? colorVariants : []).map((cv: any, idx: number) => (
+                {(Array.isArray(colorVariants) ? colorVariants : []).map((cv: Record<string, unknown>, idx: number) => (
                   <div key={String(cv?.color || idx)} className="rounded-xl border bg-background p-4 space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -617,7 +619,7 @@ export function AttributesTab() {
                         size="icon"
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => {
-                          const nextSets = [...(getValues("attributes.sets") as any[])];
+                          const nextSets = [...(getValues("attributes.sets") as unknown[])];
                           const setIndex = nextSets.findIndex((s) => isColorAttribute(String(s?.name || "")));
                           if (setIndex >= 0) {
                             const colorName = String(cv?.colorName || "").trim();
@@ -626,7 +628,7 @@ export function AttributesTab() {
 
                             nextSets[setIndex] = {
                               ...nextSets[setIndex],
-                              values: values.filter((v: any) => {
+                              values: values.filter((v: unknown) => {
                                 const s = String(v ?? '').trim();
                                 if (!s) return false;
                                 const k = normalizeColorKey(s);
@@ -636,7 +638,7 @@ export function AttributesTab() {
                             setValue("attributes.sets", nextSets, { shouldDirty: true, shouldValidate: true });
                           }
 
-                          const existingVariants = Array.isArray(getValues("colorVariants")) ? (getValues("colorVariants") as any[]) : [];
+                          const existingVariants = Array.isArray(getValues("colorVariants")) ? (getValues("colorVariants") as unknown[]) : [];
                           const targetName = String(cv?.colorName || "").trim();
                           const targetKey = normalizeColorKey(targetName || String(cv?.color || ""));
 
@@ -666,7 +668,7 @@ export function AttributesTab() {
                             const prevKey = normalizeColorKey(prevName || String(cv?.color || ""));
                             const nextKey = normalizeColorKey(nextName);
 
-                            const next = [...(getValues("colorVariants") as any[])];
+                            const next = [...(getValues("colorVariants") as unknown[])];
                             next[idx] = {
                               ...next[idx],
                               colorName: nextName,
@@ -674,18 +676,18 @@ export function AttributesTab() {
                             };
                             setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
 
-                            const nextSets = [...(getValues("attributes.sets") as any[])];
+                            const nextSets = [...(getValues("attributes.sets") as unknown[])];
                             const setIndex = nextSets.findIndex((s) => isColorAttribute(String(s?.name || "")));
                             if (setIndex >= 0) {
                               const values = Array.isArray(nextSets[setIndex]?.values) ? nextSets[setIndex].values : [];
-                              const replaced = values.map((v: any) => {
+                              const replaced = values.map((v: unknown) => {
                                 const raw = String(v ?? "").trim();
                                 if (!raw) return raw;
                                 const k = normalizeColorKey(raw);
                                 if (prevKey && k === prevKey) return nextName;
                                 return raw;
                               });
-                              const deduped = Array.from(new Set(replaced.map((v: any) => String(v).trim()).filter((v: string) => v.length > 0)));
+                              const deduped = Array.from(new Set(replaced.map((v: unknown) => String(v).trim()).filter((v: string) => v.length > 0)));
                               nextSets[setIndex] = { ...nextSets[setIndex], values: deduped };
                               setValue("attributes.sets", nextSets, { shouldDirty: true, shouldValidate: true });
                             }
@@ -704,7 +706,7 @@ export function AttributesTab() {
                               return /^#[0-9a-f]{6}$/i.test(raw) ? raw : "#000000";
                             })()}
                             onChange={(e) => {
-                              const next = [...(getValues("colorVariants") as any[])];
+                              const next = [...(getValues("colorVariants") as unknown[])];
                               next[idx] = { ...next[idx], colorCode: e.target.value };
                               setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
                             }}
@@ -714,7 +716,7 @@ export function AttributesTab() {
                             className="h-8 flex-1"
                             value={String(cv?.colorCode ?? "")}
                             onChange={(e) => {
-                              const next = [...(getValues("colorVariants") as any[])];
+                              const next = [...(getValues("colorVariants") as unknown[])];
                               next[idx] = { ...next[idx], colorCode: e.target.value };
                               setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
                             }}
@@ -731,7 +733,7 @@ export function AttributesTab() {
                           className="h-8"
                           value={String(cv?.sku ?? "")}
                           onChange={(e) => {
-                            const next = [...(getValues("colorVariants") as any[])];
+                            const next = [...(getValues("colorVariants") as unknown[])];
                             next[idx] = { ...next[idx], sku: e.target.value };
                             setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
                           }}
@@ -746,7 +748,7 @@ export function AttributesTab() {
                           value={cv?.price ?? ""}
                           onChange={(e) => {
                             const raw = e.target.value;
-                            const next = [...(getValues("colorVariants") as any[])];
+                            const next = [...(getValues("colorVariants") as unknown[])];
                             next[idx] = { ...next[idx], price: raw === "" ? undefined : Number(raw) };
                             setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
                           }}
@@ -761,7 +763,7 @@ export function AttributesTab() {
                           value={cv?.stock ?? ""}
                           onChange={(e) => {
                             const raw = e.target.value;
-                            const next = [...(getValues("colorVariants") as any[])];
+                            const next = [...(getValues("colorVariants") as unknown[])];
                             next[idx] = { ...next[idx], stock: raw === "" ? undefined : Number(raw) };
                             setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
                           }}
@@ -780,7 +782,7 @@ export function AttributesTab() {
                               type="button"
                               className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-white text-xs"
                               onClick={() => {
-                                const next = [...(getValues("colorVariants") as any[])];
+                                const next = [...(getValues("colorVariants") as unknown[])];
                                 const imgs = Array.isArray(next[idx]?.images) ? next[idx].images : [];
                                 next[idx] = { ...next[idx], images: imgs.filter((u: string) => u !== url) };
                                 setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });
@@ -800,7 +802,7 @@ export function AttributesTab() {
                             if (!f) return;
                             const url = await uploadVariantImage(f);
                             if (!url) return;
-                            const next = [...(getValues("colorVariants") as any[])];
+                            const next = [...(getValues("colorVariants") as unknown[])];
                             const imgs = Array.isArray(next[idx]?.images) ? next[idx].images : [];
                             next[idx] = { ...next[idx], images: Array.from(new Set([...imgs, url])) };
                             setValue("colorVariants", next, { shouldDirty: true, shouldValidate: true });

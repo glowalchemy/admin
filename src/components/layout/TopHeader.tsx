@@ -35,8 +35,14 @@ export function TopHeader({ onToggleSidebar }: TopHeaderProps) {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const storedUserRaw = localStorage.getItem('user');
-  const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+  const storedUser = (() => {
+    try {
+      const storedUserRaw = localStorage.getItem('user');
+      return storedUserRaw ? JSON.parse(storedUserRaw) : null;
+    } catch (_e) {
+      return null;
+    }
+  })();
   const displayName = storedUser?.firstName
     ? `${storedUser.firstName}${storedUser?.lastName ? ` ${storedUser.lastName}` : ''}`
     : 'Admin';

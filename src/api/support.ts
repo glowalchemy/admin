@@ -6,7 +6,7 @@ axios.defaults.baseURL = API_ORIGIN;
 // Support Tickets API
 export const supportAPI = {
   // Create a new support ticket
-  createTicket: async (ticketData: any) => {
+  createTicket: async (ticketData: { subject?: string; message?: string; priority?: string; category?: string; [key: string]: unknown }) => {
     try {
       const response = await axios.post('/api/support/ticket', ticketData);
       return response.data;
@@ -28,7 +28,7 @@ export const supportAPI = {
   },
 
   // Get all tickets (admin only)
-  getAllTickets: async (filters: any = {}) => {
+  getAllTickets: async (filters: { status?: string; userId?: string; dateFrom?: string; dateTo?: string; page?: string; limit?: string } = {}) => {
     try {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
@@ -58,7 +58,7 @@ export const supportAPI = {
   },
 
   // Reply to a ticket (admin only)
-  replyToTicket: async (ticketId: string, replyData: any) => {
+  replyToTicket: async (ticketId: string, replyData: { message?: string; [key: string]: unknown }) => {
     try {
       const response = await axios.put(`/api/support/${ticketId}/reply`, replyData);
       return response.data;
@@ -156,21 +156,23 @@ type OrderStatsUiResponse = {
   message?: string;
 };
 
+type ApiResult = { success?: boolean; data?: unknown; message?: string; error?: string };
+
 type OrdersAPI = {
   getAuthHeaders: () => { Authorization?: string };
   getOrderStats: () => Promise<OrderStatsUiResponse>;
-  createOrder: (orderData: any) => Promise<any>;
-  getUserOrders: (userId: string) => Promise<any>;
-  getOrder: (orderId: string) => Promise<any>;
-  getAllOrders: (filters?: any) => Promise<any>;
-  updateOrderStatus: (orderId: string, statusData: any) => Promise<any>;
-  bulkUpdateOrderStatus: (payload: { ids?: string[]; status: string; currentStatus?: string; dateFrom?: string; dateTo?: string }) => Promise<any>;
-  downloadOrderReceipt: (orderId: string) => Promise<any>;
-  downloadOrdersReceipt: (payload: { ids: string[] }) => Promise<any>;
-  cancelOrder: (orderId: string, reason: string) => Promise<any>;
-  addTracking: (orderId: string, trackingData: any) => Promise<any>;
-  getOrderTracking: (orderId: string) => Promise<any>;
-  approveRefundRequest: (refundRequestId: string) => Promise<any>;
+  createOrder: (orderData: Record<string, unknown>) => Promise<ApiResult>;
+  getUserOrders: (userId: string) => Promise<ApiResult>;
+  getOrder: (orderId: string) => Promise<ApiResult>;
+  getAllOrders: (filters?: Record<string, string>) => Promise<ApiResult>;
+  updateOrderStatus: (orderId: string, statusData: Record<string, string>) => Promise<ApiResult>;
+  bulkUpdateOrderStatus: (payload: { ids?: string[]; status: string; currentStatus?: string; dateFrom?: string; dateTo?: string }) => Promise<ApiResult>;
+  downloadOrderReceipt: (orderId: string) => Promise<ApiResult>;
+  downloadOrdersReceipt: (payload: { ids: string[] }) => Promise<ApiResult>;
+  cancelOrder: (orderId: string, reason: string) => Promise<ApiResult>;
+  addTracking: (orderId: string, trackingData: Record<string, string>) => Promise<ApiResult>;
+  getOrderTracking: (orderId: string) => Promise<ApiResult>;
+  approveRefundRequest: (refundRequestId: string) => Promise<ApiResult>;
 };
 
 export const ordersAPI: OrdersAPI = {
@@ -213,7 +215,7 @@ export const ordersAPI: OrdersAPI = {
   },
 
   // Create a new order
-  createOrder: async (orderData: any) => {
+  createOrder: async (orderData: Record<string, unknown>) => {
     try {
       const response = await axios.post('/api/orders', orderData);
       return response.data;
@@ -262,7 +264,7 @@ export const ordersAPI: OrdersAPI = {
   },
 
   // Get all orders (admin only)
-  getAllOrders: async (filters: any = {}) => {
+  getAllOrders: async (filters: Record<string, string> = {}) => {
     try {
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
@@ -284,7 +286,7 @@ export const ordersAPI: OrdersAPI = {
   },
 
   // Update order status (admin only)
-  updateOrderStatus: async (orderId: string, statusData: any) => {
+  updateOrderStatus: async (orderId: string, statusData: Record<string, string>) => {
     try {
       const response = await axios.put(`/api/orders/${orderId}/status`, statusData, {
         headers: ordersAPI.getAuthHeaders(),
@@ -338,7 +340,7 @@ export const ordersAPI: OrdersAPI = {
   },
 
   // Add tracking information (admin only)
-  addTracking: async (orderId: string, trackingData: any) => {
+  addTracking: async (orderId: string, trackingData: Record<string, string>) => {
     try {
       const response = await axios.put(`/api/orders/${orderId}/tracking`, trackingData, {
         headers: ordersAPI.getAuthHeaders(),

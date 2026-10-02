@@ -170,7 +170,7 @@ const OrdersPage = () => {
     });
 
     socket.on('connect_error', (err) => {
-      console.error('[Socket] Connection error:', err);
+      console.warn('[Socket] Live order updates unavailable:', err?.message || 'connection failed');
     });
 
     socket.on('orders:counts', (payload: any) => {

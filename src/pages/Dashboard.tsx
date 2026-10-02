@@ -108,6 +108,7 @@ const Dashboard = () => {
 
         const response = await axios.get<BackendDashboardPayload>(`/api/admin/dashboard?period=${period}`,
           {
+            timeout: 10000,
             headers: {
               Authorization: `Bearer ${token}`,
             },

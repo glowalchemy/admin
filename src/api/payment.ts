@@ -29,7 +29,7 @@ export interface PaymentTransaction {
   paymentMode?: string;
   payerVpa?: string;
   merchantTransactionId?: string;
-  gatewayResponse?: any;
+  gatewayResponse?: Record<string, unknown>;
   order?: {
     id: string;
     orderNumber: string;
@@ -263,7 +263,7 @@ export const paymentAPI = {
   },
 
   // Verify payment webhook
-  verifyWebhook: async (webhookData: any, signature: string) => {
+  verifyWebhook: async (webhookData: Record<string, unknown>, signature: string) => {
     try {
       const response = await axios.post('/api/payments/webhook/verify', {
         data: webhookData,

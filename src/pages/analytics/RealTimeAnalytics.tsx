@@ -75,6 +75,7 @@ const RealTimeAnalytics = () => {
       }
 
       const response = await axios.get<RealtimePayload>('/api/admin/analytics/realtime', {
+        timeout: 10000,
         headers: {
           Authorization: `Bearer ${token}`,
         },

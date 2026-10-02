@@ -30,18 +30,23 @@ async function requestJson<T>(input: RequestInfo, init?: RequestInit): Promise<T
   return (await res.json()) as T;
 }
 
-function applyManagementToProduct(product: any): Product {
+interface RawProduct {
+  management?: ProductManagementFormValues;
+  [key: string]: unknown;
+}
+
+function applyManagementToProduct(product: RawProduct): Product {
   const management: ProductManagementFormValues | undefined = product?.management;
-  if (!management) return product as Product;
+  if (!management) return product as unknown as Product;
 
-  const next: any = { ...product };
+  const next: Record<string, unknown> = { ...product };
 
-  const basic = management.basic ?? ({} as any);
-  const pricing = management.pricing ?? ({} as any);
-  const inventory = management.inventory ?? ({} as any);
-  const marketing = management.marketing ?? ({} as any);
-  const seo = management.seo ?? ({} as any);
-  const shipping = management.shipping ?? ({} as any);
+  const basic = management.basic ?? ({} as Record<string, unknown>);
+  const pricing = management.pricing ?? ({} as Record<string, unknown>);
+  const inventory = management.inventory ?? ({} as Record<string, unknown>);
+  const marketing = management.marketing ?? ({} as Record<string, unknown>);
+  const seo = management.seo ?? ({} as Record<string, unknown>);
+  const shipping = management.shipping ?? ({} as Record<string, unknown>);
 
   if (typeof basic.name === "string" && basic.name.trim()) next.name = basic.name;
   if (typeof inventory.sku === "string" && inventory.sku.trim()) next.sku = inventory.sku;
