@@ -230,8 +230,8 @@ export function AppSidebar({ open, onOpenChange }: AppSidebarProps) {
             )}
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="font-bold text-lg text-sidebar-foreground">Trozzi</span>
-            <span className="text-xs text-sidebar-muted">Admin Panel</span>
+            <span className="font-bold text-lg text-white">GlowAlchemy</span>
+            <span className="text-xs text-sand">Admin Panel</span>
           </div>
         </div>
       </SidebarHeader>
@@ -239,7 +239,7 @@ export function AppSidebar({ open, onOpenChange }: AppSidebarProps) {
       <SidebarContent className="px-2 py-4">
         {menuGroups.map((group) => (
           <SidebarGroup key={group.label}>
-            <SidebarGroupLabel className="text-xs font-medium text-sidebar-muted uppercase tracking-wider px-3 mb-2">
+            <SidebarGroupLabel className="text-xs font-medium text-white uppercase tracking-wider px-3 mb-2 !text-white">
               {group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -284,10 +284,10 @@ export function AppSidebar({ open, onOpenChange }: AppSidebarProps) {
                                   to={child.url}
                                   className={({ isActive }) =>
                                     cn(
-                                      'block py-2 px-3 text-sm rounded-md transition-colors',
+                                      'block py-2 px-3 text-sm rounded-md transition-colors !text-white',
                                       isActive
-                                        ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                                        : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent'
+                                        ? 'bg-sidebar-primary !text-white'
+                                        : '!text-white hover:!text-[#A68A7C] hover:bg-sidebar-accent'
                                     )
                                   }
                                 >
@@ -310,13 +310,13 @@ export function AppSidebar({ open, onOpenChange }: AppSidebarProps) {
                             cn(
                               'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
                               isActive
-                                ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-glow-sm'
-                                : 'text-sidebar-foreground hover:bg-sidebar-accent'
+                                ? 'bg-sidebar-primary text-white shadow-glow-sm'
+                                : 'text-white hover:text-sand hover:bg-sidebar-accent'
                             )
                           }
                         >
-                          <item.icon className="h-4 w-4" />
-                          <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                          <item.icon className="h-4 w-4 text-white" />
+                          <span className="group-data-[collapsible=icon]:hidden text-white">{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

@@ -77,6 +77,9 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        sand: {
+          DEFAULT: "hsl(50 53% 85%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
