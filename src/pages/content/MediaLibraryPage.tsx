@@ -127,12 +127,27 @@ const MediaLibraryPage = () => {
     run();
   };
 
-  const handleDelete = (id: string) => {
-    toast({
-      title: 'Not available',
-      description: 'Delete API is not implemented yet.',
-      variant: 'destructive',
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast({ title: 'Error', description: 'Admin token missing', variant: 'destructive' });
+        return;
+      }
+
+      await api.delete(`/upload/${encodeURIComponent(id)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      toast({ title: 'Deleted', description: 'File removed from storage' });
+      await loadMedia(activeFolder);
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err?.response?.data?.message || err?.message || 'Failed to delete file',
+        variant: 'destructive',
+      });
+    }
   };
 
   const folders = Array.from(new Set(media.map((m) => String(m.folder || 'misc')))).filter(Boolean).sort();
@@ -153,7 +168,7 @@ const MediaLibraryPage = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div><h1 className="text-3xl font-bold tracking-tight">Media Library</h1><p className="text-muted-foreground">Manage your images and files.</p></div>
         <div>
-          <input ref={fileInputRef} type="file" accept="image/*,application/pdf" multiple onChange={handleFileUpload} className="hidden" />
+          <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
           <Button onClick={() => fileInputRef.current?.click()} className="gradient-primary text-primary-foreground">
             <Upload className="mr-2 h-4 w-4" />Upload Files
           </Button>

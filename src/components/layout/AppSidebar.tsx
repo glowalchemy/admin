@@ -17,7 +17,6 @@ import {
   Users,
   FolderTree,
   Image,
-  Bell,
   ScrollText,
   Database,
   Bot,
@@ -33,9 +32,7 @@ import {
   Eye,
   Edit,
   Trash2,
-  Target,
   Radio,
-  Rocket,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -72,41 +69,6 @@ const menuGroups: MenuGroup[] = [
     label: 'Main',
     items: [
       { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-      { title: 'Getting Started', url: '/campaigns/getting-started', icon: Rocket },
-    ],
-  },
-  {
-    label: 'Analytics',
-    items: [
-      { 
-        title: 'Analytics', 
-        url: '/analytics', 
-        icon: BarChart3,
-        children: [
-          { title: 'Overview', url: '/analytics/overview' },
-          { title: 'Advanced Analytics', url: '/analytics/advanced' },
-          { title: 'Real-Time', url: '/analytics/realtime' },
-          { title: 'Business Intelligence', url: '/analytics/bi' },
-          { title: 'Report Builder', url: '/analytics/reports' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'Campaigns',
-    items: [
-      { 
-        title: 'Campaigns', 
-        url: '/campaigns', 
-        icon: Target,
-        children: [
-          { title: 'Getting Started', url: '/campaigns/getting-started' },
-          { title: 'Dashboard', url: '/campaigns/dashboard' },
-          { title: 'All Campaigns', url: '/campaigns/list' },
-          { title: 'Meta Setup', url: '/campaigns/setup' },
-          { title: 'Event Tracking', url: '/campaigns/tracking' },
-        ],
-      },
     ],
   },
   {
@@ -134,7 +96,6 @@ const menuGroups: MenuGroup[] = [
     items: [
       { title: 'Users', url: '/users', icon: Users },
       { title: 'Media Library', url: '/media', icon: Image },
-      { title: 'Notifications', url: '/notifications', icon: Bell },
       { title: 'Audit Logs', url: '/audit-logs', icon: ScrollText },
     ],
   },
@@ -168,7 +129,7 @@ const API_BASE_URL = `${API_ORIGIN}/api`;
 export function AppSidebar({ open, onOpenChange }: AppSidebarProps) {
   const location = useLocation();
   const { state } = useSidebar();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['Analytics', 'Campaigns', 'Reviews']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['Reviews']);
   const [brandLogoUrl, setBrandLogoUrl] = useState('');
 
   useEffect(() => {
