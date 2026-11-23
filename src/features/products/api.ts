@@ -82,7 +82,12 @@ export async function listCatalogProducts() {
 }
 
 export async function listCatalogProductsFull() {
-  const data = await requestJson<any[]>("/api/products?mode=admin");
+  // `fields=admin-list` returns only the columns the products table renders
+  // (image, name, badge, sku, category, price, stock, status, featured,
+  // createdAt) instead of the full listing projection with every management
+  // blob. The product editor still loads the complete document separately from
+  // /api/products/:id/management.
+  const data = await requestJson<any[]>("/api/products?mode=admin&fields=admin-list");
   return data.map(applyManagementToProduct);
 }
 

@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, Eye, Edit, Trash2, ThumbsUp, MessageSquare, Search } from 'lucide-react';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 import { fetchAllReviews, getReviewStats, updateReviewStatus, deleteReview } from '../../api/reviews';
 import axios from 'axios';
 
@@ -28,6 +28,8 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({ defaultFilter }) => {
   const [filterStatus, setFilterStatus] = useState(defaultFilter || 'all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  // Single notification system for the whole admin app (sonner was a second).
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     totalReviews: 0,
     averageRating: 0,
@@ -99,12 +101,16 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({ defaultFilter }) => {
       await deleteReview(reviewId);
       
       setReviews(prev => prev.filter(review => review.id !== reviewId));
-      toast.success('Review deleted successfully');
+      toast({ title: 'Deleted', description: 'Review deleted successfully.' });
       // Reload stats after deletion
       loadStats();
     } catch (error: any) {
       console.error('Failed to delete review:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete review');
+      toast({
+        title: 'Delete failed',
+        description: error?.response?.data?.error?.message || error?.response?.data?.message || 'Failed to delete review. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -116,12 +122,16 @@ const ReviewsPage: React.FC<ReviewsPageProps> = ({ defaultFilter }) => {
       setReviews(prev => prev.map(review => 
         review.id === reviewId ? { ...review, status } : review
       ));
-      toast.success(`Review ${status} successfully`);
+      toast({ title: 'Updated', description: `Review ${status} successfully.` });
       // Reload stats after status update
       loadStats();
     } catch (error: any) {
       console.error('Failed to update review status:', error);
-      toast.error(error.response?.data?.message || 'Failed to update review status');
+      toast({
+        title: 'Update failed',
+        description: error?.response?.data?.error?.message || error?.response?.data?.message || 'Failed to update review status. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 

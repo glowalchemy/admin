@@ -21,11 +21,31 @@ import {
 } from '@/api/banners';
 
 const BANNER_POSITIONS = [
-  { value: 'home_hero', label: 'Home Hero Slider' },
-  { value: 'home_mid_slider', label: 'Home Mid Slider' },
-  { value: 'home_mid_banners', label: 'Home Mid Banners' },
-  { value: 'home_ad_grid', label: 'Home Ad Grid' },
-  { value: 'home_promo_slider', label: 'Home Promo Slider' },
+  {
+    value: 'home_hero',
+    label: 'Home Hero Slider',
+    info: 'Top of homepage — full-width slider above all products. Recommended: 1920×720 (16:6 desktop); 800×1000 for portrait mobile art.',
+  },
+  {
+    value: 'home_mid_slider',
+    label: 'Home Mid Slider',
+    info: 'Middle of homepage — slider shown after Featured Products, before the promo slider. Recommended: landscape cards ~1200×800 (3:2).',
+  },
+  {
+    value: 'home_mid_banners',
+    label: 'Home Mid Banners',
+    info: 'Middle of homepage — small banner grid between Latest Products and Featured Products (up to 8 shown). Recommended: square/portrait ~600×600.',
+  },
+  {
+    value: 'home_ad_grid',
+    label: 'Home Ad Grid',
+    info: 'Inside Products section — grid after Popular Products on desktop, swipe carousel on mobile. Recommended: ~800×533 (3:2).',
+  },
+  {
+    value: 'home_promo_slider',
+    label: 'Home Promo Slider',
+    info: 'Promotions section near page bottom — horizontal slider. Recommended: landscape ~800×533 (3:2).',
+  },
 ];
 
 type Banner = AdminBanner;
@@ -253,6 +273,9 @@ const BannersPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  {BANNER_POSITIONS.find((p) => p.value === formData.position)?.info}
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="order">Order</Label>

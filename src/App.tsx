@@ -1,52 +1,57 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import { CartProvider } from "./features/storefront/cart";
+// Sign-in stays eager: it is the first screen for every signed-out admin, so
+// it should paint without waiting for another chunk. Every other route is
+// split into its own chunk (the whole dashboard used to ship as one ~1.5MB
+// bundle on the sign-in screen).
 import SignInPage from "./pages/auth/SignInPage";
-import Dashboard from "./pages/Dashboard";
-import AnalyticsOverview from "./pages/analytics/AnalyticsOverview";
-import AdvancedAnalytics from "./pages/analytics/AdvancedAnalytics";
-import RealTimeAnalytics from "./pages/analytics/RealTimeAnalytics";
-import BusinessIntelligence from "./pages/analytics/BusinessIntelligence";
-import ReportBuilder from "./pages/analytics/ReportBuilder";
 
-import ProductsPage from "./pages/commerce/ProductsPage";
-import ProductManagementPage from "./pages/commerce/ProductManagementPage";
-import ProductPreviewPage from "./pages/commerce/ProductPreviewPage";
-import OrdersPage from "./pages/commerce/OrdersPage";
-import InventoryPage from "./pages/commerce/InventoryPage";
-import PaymentsPage from "./pages/commerce/PaymentsPage";
-import PaymentsManagementPage from "./pages/commerce/PaymentsManagementPage";
-import UsersManagementPage from "./pages/users/UsersManagementPage";
-import CampaignDashboard from "./pages/campaigns/CampaignDashboard";
-import CampaignsPage from "./pages/campaigns/CampaignsPage";
-import MetaSetupPage from "./pages/campaigns/MetaSetupPage";
-import EventTrackingPage from "./pages/campaigns/EventTrackingPage";
-import GettingStartedPage from "./pages/campaigns/GettingStartedPage";
-import ContentPage from "./pages/content/ContentPage";
-import CategoriesPage from "./pages/content/CategoriesPage";
-import SubCategoriesPage from "./pages/content/SubCategoriesPage";
-import BannersPage from "./pages/content/BannersPage";
-import MediaLibraryPage from "./pages/content/MediaLibraryPage";
-import NotificationsPage from "./pages/content/NotificationsPage";
-import AuditLogsPage from "./pages/content/AuditLogsPage";
-import DataManagementPage from "./pages/system/DataManagementPage";
-import AIAutomationPage from "./pages/system/AIAutomationPage";
-import PluginsPage from "./pages/system/PluginsPage";
-import SettingsPage from "./pages/system/SettingsPage";
-import ReviewsPage from './pages/reviews';
-import ReviewsAnalyticsPage from './pages/reviews/ReviewsAnalyticsPage';
-import NotFound from "./pages/NotFound";
-import ShopLayout from "./pages/shop/ShopLayout";
-import ShopHomePage from "./pages/shop/ShopHomePage";
-import ShopProductsPage from "./pages/shop/ShopProductsPage";
-import ShopProductDetailsPage from "./pages/shop/ShopProductDetailsPage";
-import ShopCartPage from "./pages/shop/ShopCartPage";
-import ShopCheckoutPage from "./pages/shop/ShopCheckoutPage";
-import ShopOrderSuccessPage from "./pages/shop/ShopOrderSuccessPage";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AnalyticsOverview = lazy(() => import("./pages/analytics/AnalyticsOverview"));
+const AdvancedAnalytics = lazy(() => import("./pages/analytics/AdvancedAnalytics"));
+const RealTimeAnalytics = lazy(() => import("./pages/analytics/RealTimeAnalytics"));
+const BusinessIntelligence = lazy(() => import("./pages/analytics/BusinessIntelligence"));
+const ReportBuilder = lazy(() => import("./pages/analytics/ReportBuilder"));
+
+const ProductsPage = lazy(() => import("./pages/commerce/ProductsPage"));
+const ProductManagementPage = lazy(() => import("./pages/commerce/ProductManagementPage"));
+const ProductPreviewPage = lazy(() => import("./pages/commerce/ProductPreviewPage"));
+const OrdersPage = lazy(() => import("./pages/commerce/OrdersPage"));
+const InventoryPage = lazy(() => import("./pages/commerce/InventoryPage"));
+const PaymentsPage = lazy(() => import("./pages/commerce/PaymentsPage"));
+const PaymentsManagementPage = lazy(() => import("./pages/commerce/PaymentsManagementPage"));
+const UsersManagementPage = lazy(() => import("./pages/users/UsersManagementPage"));
+const CampaignDashboard = lazy(() => import("./pages/campaigns/CampaignDashboard"));
+const CampaignsPage = lazy(() => import("./pages/campaigns/CampaignsPage"));
+const MetaSetupPage = lazy(() => import("./pages/campaigns/MetaSetupPage"));
+const EventTrackingPage = lazy(() => import("./pages/campaigns/EventTrackingPage"));
+const GettingStartedPage = lazy(() => import("./pages/campaigns/GettingStartedPage"));
+const ContentPage = lazy(() => import("./pages/content/ContentPage"));
+const CategoriesPage = lazy(() => import("./pages/content/CategoriesPage"));
+const SubCategoriesPage = lazy(() => import("./pages/content/SubCategoriesPage"));
+const BannersPage = lazy(() => import("./pages/content/BannersPage"));
+const MediaLibraryPage = lazy(() => import("./pages/content/MediaLibraryPage"));
+const NotificationsPage = lazy(() => import("./pages/content/NotificationsPage"));
+const AuditLogsPage = lazy(() => import("./pages/content/AuditLogsPage"));
+const DataManagementPage = lazy(() => import("./pages/system/DataManagementPage"));
+const AIAutomationPage = lazy(() => import("./pages/system/AIAutomationPage"));
+const PluginsPage = lazy(() => import("./pages/system/PluginsPage"));
+const SettingsPage = lazy(() => import("./pages/system/SettingsPage"));
+const ReviewsPage = lazy(() => import('./pages/reviews'));
+const ReviewsAnalyticsPage = lazy(() => import('./pages/reviews/ReviewsAnalyticsPage'));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ShopLayout = lazy(() => import("./pages/shop/ShopLayout"));
+const ShopHomePage = lazy(() => import("./pages/shop/ShopHomePage"));
+const ShopProductsPage = lazy(() => import("./pages/shop/ShopProductsPage"));
+const ShopProductDetailsPage = lazy(() => import("./pages/shop/ShopProductDetailsPage"));
+const ShopCartPage = lazy(() => import("./pages/shop/ShopCartPage"));
+const ShopCheckoutPage = lazy(() => import("./pages/shop/ShopCheckoutPage"));
+const ShopOrderSuccessPage = lazy(() => import("./pages/shop/ShopOrderSuccessPage"));
 
 const queryClient = new QueryClient();
 
@@ -62,9 +67,19 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
       <CartProvider>
         <BrowserRouter>
+          <Suspense
+            fallback={
+              <div className="flex min-h-screen items-center justify-center bg-background">
+                <div
+                  className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary"
+                  role="status"
+                  aria-label="Loading"
+                />
+              </div>
+            }
+          >
           <Routes>
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/products/:id/preview" element={<ProductPreviewPage />} />
@@ -120,6 +135,7 @@ const App = () => (
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </CartProvider>
     </TooltipProvider>

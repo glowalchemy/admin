@@ -12,6 +12,33 @@ type UploadQueueConfig = {
   dedupeWindowMs: number;
 };
 
+/** Status-derived fallback text, used when the server sends no usable message. */
+function defaultMessageForStatus(status: number): string {
+  if (status === 413) return "This file is too large. Please choose a smaller file.";
+  if (status === 415) return "This file type is not supported. Please choose a JPG, PNG, WebP, AVIF, GIF or SVG image.";
+  if (status === 422) return "This file could not be processed. Please choose another file.";
+  if (status === 429) return "Too many uploads at once. Please wait a moment and try again.";
+  if (status >= 500) return "Upload failed because the server is temporarily unavailable. Please try again.";
+  return "The upload failed. Please try again.";
+}
+
+const UNSAFE_MESSAGE = [
+  /\b(Error|Exception|TypeError|CastError|ValidationError)\b/,
+  /\bE11000\b/,
+  /at\s+[\w$.<>]+\s+\(/,
+  /\.js:\d+/,
+  /<[a-z!/]/i,
+  /node_modules/,
+];
+
+/** Keep server wording only when it is short, readable and free of internals. */
+function isSafeServerMessage(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const text = value.trim();
+  if (text.length < 2 || text.length > 300) return false;
+  return !UNSAFE_MESSAGE.some((re) => re.test(text));
+}
+
 class HttpError extends Error {
   status: number;
   payload?: any;
@@ -91,26 +118,41 @@ async function uploadOnce(file: File, opts: UploadOptions): Promise<string> {
     }
 
     let payload: any = undefined;
-    let msg = `Upload failed (${res.status})`;
+    let msg = defaultMessageForStatus(res.status);
     try {
       payload = await res.json();
-      msg = payload?.message || payload?.error || msg;
+      // The API answers with { message, error: { code, message, details } }.
+      // Read the nested object explicitly (never stringify it) and only keep a
+      // message that contains no internals.
+      const nested = payload?.error;
+      const candidates = [
+        nested && typeof nested === 'object' ? nested.message : undefined,
+        typeof payload?.message === 'string' ? payload.message : undefined,
+        typeof payload?.error === 'string' ? payload.error : undefined,
+      ];
+      const safe = candidates.find((c) => isSafeServerMessage(c));
+      if (safe) msg = String(safe);
     } catch {
-      // ignore
+      // Non-JSON body (proxy error page): keep the status-based message and do
+      // not echo response text back into the UI.
     }
     throw new HttpError(res.status, msg, payload, retryAfterMs);
   }
 
   const contentType = String(res.headers.get("content-type") || "").toLowerCase();
   if (!contentType.includes("application/json")) {
-    const text = await res.text();
-    const snippet = text.slice(0, 120);
-    throw new Error(`Upload failed: non-JSON response. ${snippet}`);
+    // Never surface raw proxy/gateway HTML in the admin UI.
+    throw new HttpError(
+      res.status || 502,
+      "Upload failed because the server is temporarily unavailable. Please try again."
+    );
   }
 
   const data = await res.json();
   const url = data?.url;
-  if (!url) throw new Error("Upload failed: missing url");
+  if (!url) {
+    throw new HttpError(502, "Upload failed because the server did not confirm the file. Please try again.");
+  }
   return String(url);
 }
 
