@@ -20,7 +20,13 @@ export const productManagementSchema = z
   .object({
     basic: z.object({
       name: nonEmpty("Product name is required"),
-      slug: nonEmpty("Product slug is required"),
+      slug: z
+        .string()
+        .trim()
+        .min(1, "Product slug is required")
+        .max(80, "Product URL exceeds the allowed length")
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers where meaningful, and hyphens only"),
+      slugMode: z.enum(["auto", "custom"]).optional(),
       shortDescription: z.string().trim().max(300, "Max 300 characters"),
       descriptionHtml: z.string().trim(),
       categoryIds: z.array(z.string()).min(1, "Select at least 1 category"),
@@ -199,6 +205,7 @@ export const productManagementDefaults: ProductManagementFormValues = {
     brand: "",
     status: "draft",
     visibility: "public",
+    slugMode: "auto",
   },
   pricing: {
     originalPrice: 0,

@@ -153,7 +153,7 @@ export function InventoryTab() {
               name="inventory.lowStockThreshold"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Low stock threshold</FormLabel>
+                  <FormLabel>Low stock threshold <span className="text-xs font-normal text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -174,7 +174,7 @@ export function InventoryTab() {
               name="inventory.stockQuantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Stock Quantity</FormLabel>
+                  <FormLabel>Stock Quantity <span className="text-xs font-normal text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       type="number"

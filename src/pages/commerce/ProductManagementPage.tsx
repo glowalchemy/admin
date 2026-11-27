@@ -23,6 +23,13 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductFormTabs } from "@/features/products/components/product-form/ProductFormTabs";
 import { productManagementDefaults, productManagementSchema } from "@/features/products/schema";
 import {
+  PRODUCT_FORM_SECTIONS,
+  countErrorsForFields,
+  firstErrorPath,
+  firstErrorPathInSection,
+  sectionIndexForErrorPath,
+} from "@/features/products/sections";
+import {
   useCategoriesQuery,
   useCatalogProductsQuery,
   useDeleteProductMutation,
@@ -71,18 +78,56 @@ export default function ProductManagementPage() {
   const [currentTab, setCurrentTab] = useState(0);
   const initialLoadRef = useRef(true);
 
-  // Define tab names for validation
-  const tabs = [
-    "basic",
-    "pricing",
-    "inventory",
-    "media",
-    "variants",
-    "seo",
-    "shipping",
-    "marketing",
-    "sale",
-  ];
+  // Jump to the tab that owns the first validation error and focus the field.
+  const focusFirstError = (path: string | null) => {
+    if (!path) return;
+    const sectionIdx = sectionIndexForErrorPath(path);
+    if (sectionIdx >= 0 && sectionIdx !== currentTab) {
+      setCurrentTab(sectionIdx);
+    }
+    // Wait for the tab content to mount before focusing.
+    window.setTimeout(() => {
+      form.setFocus(path as any);
+      // Fallback for inputs that are not registered RHF fields (e.g. slug).
+      const el = document.querySelector<HTMLElement>(`[name="${path}"]`);
+      el?.focus();
+      el?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+    }, 60);
+  };
+
+  const totalErrorCount = countErrorsForFields(form.formState.errors, PRODUCT_FORM_SECTIONS.flatMap((s) => s.fields));
+
+  const validateCurrentTab = async () => {
+    const section = PRODUCT_FORM_SECTIONS[currentTab];
+    if (!section) return true;
+
+    const result = await form.trigger(section.fields as any);
+    if (!result) {
+      focusFirstError(firstErrorPathInSection(form.formState.errors, currentTab));
+    }
+    return result;
+  };
+
+  const handleNext = async () => {
+    const isValid = await validateCurrentTab();
+
+    if (!isValid) {
+      const errorCount = countErrorsForFields(
+        form.formState.errors,
+        PRODUCT_FORM_SECTIONS[currentTab]?.fields ?? []
+      );
+      toast({
+        title: "Validation Error",
+        description: `Please fix ${errorCount} error${errorCount === 1 ? "" : "s"} in this section before proceeding.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (currentTab < PRODUCT_FORM_SECTIONS.length - 1) {
+      setCurrentTab(currentTab + 1);
+    }
+  };
 
   // Initialize form with data (only on initial load, not after mutation)
   useEffect(() => {
@@ -132,33 +177,6 @@ export default function ProductManagementPage() {
     updateMutation.isPending ||
     deleteMutation.isPending;
 
-  const validateCurrentTab = async () => {
-    const tabName = tabs[currentTab];
-    const fields = Object.keys(form.getValues()).filter((key) => key.startsWith(tabName));
-    
-    if (fields.length === 0) return true;
-
-    const result = await form.trigger(fields as any);
-    return result;
-  };
-
-  const handleNext = async () => {
-    const isValid = await validateCurrentTab();
-    
-    if (!isValid) {
-      toast({ 
-        title: "Validation Error", 
-        description: "Please fix the errors in the current section before proceeding.", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
-    if (currentTab < tabs.length - 1) {
-      setCurrentTab(currentTab + 1);
-    }
-  };
-
   const handlePrevious = () => {
     if (currentTab > 0) {
       setCurrentTab(currentTab - 1);
@@ -183,21 +201,18 @@ export default function ProductManagementPage() {
   const submit = async (intent: "draft" | "publish" | "update") => {
     const ok = await form.trigger();
     if (!ok) {
-      toast({ title: "Fix validation errors", description: "Please review highlighted fields.", variant: "destructive" });
+      const firstPath = firstErrorPath(form.formState.errors);
+      const count = totalErrorCount;
+      toast({
+        title: "Please fix the highlighted fields",
+        description: `${count} error${count === 1 ? "" : "s"} found. We've taken you to the first one.`,
+        variant: "destructive",
+      });
+      focusFirstError(firstPath);
       return;
     }
 
     const values = form.getValues();
-
-    const categoryId = values.basic?.categoryIds?.[0];
-    if (!categoryId) {
-      toast({ title: "Category required", description: "Please select a category before saving.", variant: "destructive" });
-      return;
-    }
-    if (!values.basic?.subCategoryId) {
-      toast({ title: "Sub Category required", description: "Please select a sub category before saving.", variant: "destructive" });
-      return;
-    }
 
     try {
       if (intent === "draft") {
@@ -226,7 +241,28 @@ export default function ProductManagementPage() {
       // Reset form with submitted values to reflect new status
       form.reset(values);
     } catch (e: any) {
-      toast({ title: "Request failed", description: e?.message ?? "Please try again", variant: "destructive" });
+      const message = e?.message ?? "Please try again";
+      const code = String(e?.code ?? "");
+      const lower = message.toLowerCase();
+
+      // Map known backend errors onto the responsible field so the message
+      // appears inline (and on the tab badge) instead of only in a toast.
+      let fieldPath: string | null = null;
+      if (code.startsWith("SLUG") || lower.includes("product url") || lower.includes("slug")) {
+        fieldPath = "basic.slug";
+      } else if (lower.includes("sub category")) {
+        fieldPath = "basic.subCategoryId";
+      } else if (lower.includes("category is required") || lower.includes("category")) {
+        fieldPath = "basic.categoryIds";
+      } else if (lower.includes("image")) {
+        fieldPath = "media.images";
+      }
+
+      if (fieldPath) {
+        form.setError(fieldPath as any, { type: "server", message });
+        focusFirstError(fieldPath);
+      }
+      toast({ title: "Request failed", description: message, variant: "destructive" });
     }
   };
 
@@ -311,7 +347,12 @@ export default function ProductManagementPage() {
                 <Badge variant="outline">{form.watch("basic.visibility")}</Badge>
               </div>
               <p className="text-muted-foreground">
-                Advanced product editor with pricing, inventory, media, variants, SEO, shipping, marketing, and sale configuration.
+                Fill in the details below. Fields marked <span className="text-destructive font-medium">*</span> are required — everything else is optional.
+                {totalErrorCount > 0 ? (
+                  <span className="ml-2 inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+                    {totalErrorCount} error{totalErrorCount === 1 ? "" : "s"} to fix
+                  </span>
+                ) : null}
               </p>
             </div>
           </div>
@@ -382,7 +423,7 @@ export default function ProductManagementPage() {
             </Button>
             <Button
               onClick={handleNext}
-              disabled={currentTab === tabs.length - 1}
+              disabled={currentTab === PRODUCT_FORM_SECTIONS.length - 1}
               className="gap-2"
             >
               Next

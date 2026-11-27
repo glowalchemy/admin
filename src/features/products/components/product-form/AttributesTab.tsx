@@ -1,6 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, Sparkles, Palette } from "lucide-react";
+import { Plus, Trash2, Sparkles, Palette, AlertTriangle } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 
 import { TagInput } from "@/features/products/components/TagInput";
+import { collectErrorMessages } from "@/features/products/sections";
 import { generateVariantOverrides, formatMoney } from "@/features/products/utils";
 import type { ProductManagementFormValues } from "@/features/products/types";
 import { API_ORIGIN } from "@/lib/apiClient";
@@ -40,7 +41,7 @@ type SizeGuideDoc = { category: string; columns: Array<{ key: string; label: str
 const API_BASE_URL = `${API_ORIGIN}/api`;
 
 export function AttributesTab() {
-  const { control, getValues, setValue } = useFormContext<ProductManagementFormValues>();
+  const { control, getValues, setValue, formState } = useFormContext<ProductManagementFormValues>();
   const { toast } = useToast();
 
   const sets = useWatch({ control, name: "attributes.sets" }) ?? [];
@@ -55,6 +56,8 @@ export function AttributesTab() {
   const showVariantsPanel = false;
 
   const sizeGuideImageUrl = useWatch({ control, name: "attributes.sizeGuideImageUrl" }) ?? "";
+
+  const attributeErrorMessages = collectErrorMessages(formState.errors, ["attributes", "colorVariants"]);
 
   const isColorAttribute = (name: string) => {
     const n = name.toLowerCase();
@@ -210,10 +213,24 @@ export function AttributesTab() {
           <CardTitle>Product Options</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {attributeErrorMessages.length > 0 && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+              <p className="flex items-center gap-2 text-sm font-medium text-destructive">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                Please fix the following:
+              </p>
+              <ul className="mt-1.5 list-disc space-y-0.5 pl-6 text-sm text-destructive">
+                {attributeErrorMessages.map((msg, i) => (
+                  <li key={i}>{msg}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Options</p>
+                <p className="font-medium">Options <span className="text-xs font-normal text-muted-foreground">(optional)</span></p>
                 <p className="text-sm text-muted-foreground">
                   Add options like Size or Color to generate variants.
                 </p>
@@ -263,7 +280,7 @@ export function AttributesTab() {
                           onChange={(e) => {
                             const next = [...getValues("attributes.sets")];
                             next[idx] = { ...next[idx], name: e.target.value };
-                            setValue("attributes.sets", next, { shouldDirty: true });
+                            setValue("attributes.sets", next, { shouldDirty: true, shouldValidate: true });
                           }}
                           placeholder="e.g. Size, Color"
                         />

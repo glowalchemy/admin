@@ -57,6 +57,7 @@ export interface ProductManagementFormValues {
   basic: {
     name: string;
     slug: string;
+    slugMode?: "auto" | "custom";
     shortDescription: string;
     descriptionHtml: string;
     categoryIds: string[];

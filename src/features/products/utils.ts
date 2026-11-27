@@ -10,6 +10,25 @@ export function slugify(input: string) {
     .slice(0, 80);
 }
 
+/**
+ * Preview of the backend automatic slug: the first three meaningful,
+ * normalized words of the product name (fewer when the name is shorter).
+ * Mirrors backend/src/services/productSlugService.js — the backend remains
+ * the authority; this is only a live preview.
+ */
+export function slugPreviewFromName(input: string) {
+  const words = String(input ?? "")
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3);
+  return words.join("-").slice(0, 80).replace(/-+$/g, "");
+}
+
 export function formatMoney(amount: number, currency = "INR") {
   try {
     return new Intl.NumberFormat('en-IN', {

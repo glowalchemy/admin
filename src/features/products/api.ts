@@ -18,13 +18,18 @@ async function requestJson<T>(input: RequestInfo, init?: RequestInit): Promise<T
 
   if (!res.ok) {
     let msg = `Request failed (${res.status})`;
+    let code: string | undefined;
     try {
       const data = await res.json();
       msg = data?.message ?? msg;
+      code = typeof data?.code === "string" ? data.code : undefined;
     } catch {
       // ignore
     }
-    throw new Error(msg);
+    const err = new Error(msg) as Error & { code?: string; status?: number };
+    err.code = code;
+    err.status = res.status;
+    throw err;
   }
 
   return (await res.json()) as T;
@@ -197,6 +202,26 @@ export async function deleteSubCategory(id: string) {
   return requestJson<{ ok: true }>(`/api/subcategories/${id}`, {
     method: "DELETE",
   });
+}
+
+export interface SlugCheckResult {
+  available: boolean;
+  current?: boolean;
+  code?: string;
+  message?: string;
+  ownerName?: string;
+}
+
+export async function checkProductSlug(slug: string, excludeId?: string) {
+  const params = new URLSearchParams({ slug });
+  if (excludeId) params.set("excludeId", excludeId);
+  return requestJson<SlugCheckResult>(`/api/admin/products/slug/check?${params.toString()}`);
+}
+
+export async function getProductSlugSuggestions(name: string, excludeId?: string) {
+  const params = new URLSearchParams({ name });
+  if (excludeId) params.set("excludeId", excludeId);
+  return requestJson<{ suggestions: string[] }>(`/api/admin/products/slug/suggestions?${params.toString()}`);
 }
 
 export async function getProductManagement(id: string) {

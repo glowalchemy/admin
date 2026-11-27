@@ -100,7 +100,7 @@ export function PricingTab() {
               name="pricing.taxClass"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax class</FormLabel>
+                  <FormLabel>Tax class <span className="text-xs font-normal text-muted-foreground">(optional)</span></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -123,7 +123,7 @@ export function PricingTab() {
               name="pricing.taxRatePercent"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tax rate (%)</FormLabel>
+                  <FormLabel>Tax rate (%) <span className="text-xs font-normal text-muted-foreground">(optional)</span></FormLabel>
                   <FormControl>
                     <Input
                       type="number"
