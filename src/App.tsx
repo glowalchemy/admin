@@ -82,7 +82,7 @@ const App = () => (
           >
           <Routes>
             <Route path="/sign-in" element={<SignInPage />} />
-            <Route path="/products/:id/preview" element={<ProductPreviewPage />} />
+            <Route path="/products/:id/preview" element={<ProtectedRoute><ProductPreviewPage /></ProtectedRoute>} />
 
             <Route path="/shop" element={<ShopLayout />}>
               <Route index element={<ShopHomePage />} />
